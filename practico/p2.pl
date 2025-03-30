@@ -236,14 +236,21 @@ dot(+V,+W,?P) P es el producto punto entre V y W
 dist(+V,+W,?D) D es la distancia euclídea entre V y W
 */
 % neg(+V,?W) W es el vector opuesto a V
+neg([],[]).
+neg([X|V],[Y|W]):- Y is -X, neg(V,W).
 
 % suma(+V,+W,?T) T es la suma de los vectores V y W
+suma_vector([],[],[]).
+suma_vector([X|V],[Y|W],[Z|T]):- Z is X + Y, suma_vector(V,W,T).  
 
 % dot(+V,+W,?P) P es el producto punto entre V y W 
 dot([],[],0).
 dot([X|V],[Y|W],P):- dot(V,W,R), P is X*Y+R.
 
 % dist(+V,+W,?D) D es la distancia euclídea entre V y W
+dist_aux([],[],0).
+dist_aux([X|V],[Y|W],D):- dist_aux(V,W,Z), D is (X-Y)^2 + Z.
+dist(V,W,D):- dist_aux(V,W,X), D is sqrt(X).
 
 /* Ejercicio 6 ----------------------------------------------------------------
 Considere la representación de matrices mediante listas de listas de valores reales en Prolog.
