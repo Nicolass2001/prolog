@@ -72,6 +72,79 @@ kreinas(K,N,Reinas):-
     % Check
     kreinas_check(Reinas).
 
+/* Otra solución
+% sublista(L,S) ← La lista S contiene elementos consecutivos de la lista L.
+sublista(L,S):- append(P,_,L), append(_,S,P).
+
+
+% Genera una lista con N elementos iguales a Elem
+generar_fila(0, _, []).
+generar_fila(N, Elem, [Elem | Resto]) :-
+    N > 0,
+    N1 is N - 1,
+    generar_fila(N1, Elem, Resto).
+
+% Genera un tablero NxN con el valor inicial Elem en todas las casillas
+generar_tablero(0,_, _, []).
+generar_tablero(N, F, Elem, [Fila | Resto]) :-
+    N > 0,
+    generar_fila(F, Elem, Fila), 
+    N1 is N - 1,
+    generar_tablero(N1, F, Elem, Resto).
+
+
+asignar_reina(1,[_|Fila],[1|Fila]).
+asignar_reina(IndicePosicion,[X|Fila],[X|FilaReina]):-
+        IndiceNuevo is IndicePosicion - 1,
+        asignar_reina(IndiceNuevo,Fila,FilaReina).
+
+asignar_reinas(_, [], [], []).
+
+asignar_reinas(IndiceFila,[IndiceFila|Resto],[Fila|RestoTablero], [FilaReina|TableroFinal]):-
+    length(Fila, LargoFila),
+    numlist(1,LargoFila , Posicionesfila),
+    member(IndicePosicion, Posicionesfila),
+    asignar_reina(IndicePosicion, Fila, FilaReina),
+    FilaSiguiente is IndiceFila + 1,
+    asignar_reinas(FilaSiguiente,Resto, RestoTablero, TableroFinal).
+asignar_reinas(FilaAcual,FilasCandidatas,[Fila|RestoTablero], [Fila|TableroFinal]):-
+    FilaSiguiente is FilaAcual + 1,
+    asignar_reinas(FilaSiguiente,FilasCandidatas, RestoTablero, TableroFinal).
+
+
+%comprobar_reinas([]).
+comprobar_reinas([[]|_]).
+
+comprobar_reinas(Reinas):-
+    columna(Reinas,ReinaColuma,ReinaColumas),
+   % write(ReinaColuma), nl,
+    selectchk(1,ReinaColuma,Resto),
+  %  write(Resto), nl,
+    \+ member(1, Resto),
+ 
+    comprobar_reinas(ReinaColumas).
+
+comprobar_reinas(Reinas):-
+    columna(Reinas,ReinaColuma,ReinaColumas),
+     % write(ReinaColuma), nl,
+    \+ member(1, ReinaColuma),
+    comprobar_reinas(ReinaColumas).
+
+
+kreinas(K,N,Reinas):-
+%Generate
+
+generar_tablero(N, N, 0, TableroInicial),
+numilst(1, N, TodasFilas),
+sublista(TodasFilas, FilasCandidatas),
+length(FilasCandidatas, K),  % Filtrar solo combinaciones de tamaño K
+asignar_reinas(1,FilasCandidatas, TableroInicial, Reinas),
+ 
+%Check
+comprobar_reinas(Reinas).
+%Falta la diagonal
+*/
+
 /* Ejercicio 3 ----------------------------------------------------------------
 Al principio hay tres peones blancos y tres negros,
 alineados y separados por una casilla vacía.
@@ -125,3 +198,82 @@ secuencia de viajes de manera tal que en ningún momento un hombre se encuentre
 en presencia de otras mujeres sin su novia. Tenga en cuenta que, en cada cruce,
 cualquiera de los seis puede manejar el bote si se encuentra en su orilla.
 */
+hombre(h1).
+hombre(h2).
+hombre(h3).
+mujer(m1).
+mujer(m2).
+mujer(m3).
+pareja(h1,m1).
+pareja(h2,m2).
+pareja(h3,m3).
+grupo_invalido(G):-
+    member(H,G),
+    member(M,G),
+    hombre(H),
+    mujer(M),
+    \+ pareja(H,M),
+    pareja(H,M2),
+    \+ member(M2,G).
+
+generate_viajes([[],_,_],_,[]).
+generate_viajes([OrillaIzquierda,OrillaDerecha,bote_izq],EstadoHastaAhora,[[X,Y]|Camino]):-
+    \+ member([OrillaIzquierda,OrillaDerecha,bote_izq],EstadoHastaAhora),
+    select(X,OrillaIzquierda,RestoOrillaIzquierdaAux),
+    select(Y,RestoOrillaIzquierdaAux,RestoOrillaIzquierda),
+    \+ grupo_invalido(RestoOrillaIzquierda),
+    \+ grupo_invalido([X,Y]),
+    append(OrillaDerecha,[X,Y],NewOrillaDerecha),
+    \+ grupo_invalido(NewOrillaDerecha),
+    generate_viajes([RestoOrillaIzquierda,NewOrillaDerecha,bote_der],[[OrillaIzquierda,OrillaDerecha,bote_izq]|EstadoHastaAhora],Camino).
+
+generate_viajes([OrillaIzquierda,OrillaDerecha,bote_izq],EstadoHastaAhora,[[X]|Camino]):-
+    \+ member([OrillaIzquierda,OrillaDerecha,bote_izq],EstadoHastaAhora),
+    select(X,OrillaIzquierda,RestoOrillaIzquierda),
+    \+ grupo_invalido(RestoOrillaIzquierda),
+    append(OrillaDerecha,[X],NewOrillaDerecha),
+    \+ grupo_invalido(NewOrillaDerecha),
+    generate_viajes([RestoOrillaIzquierda,NewOrillaDerecha,bote_der],[[OrillaIzquierda,OrillaDerecha,bote_izq]|EstadoHastaAhora],Camino).
+
+generate_viajes([OrillaIzquierda,OrillaDerecha,bote_der],EstadoHastaAhora,[[X,Y]|Camino]):-
+    \+ member([OrillaIzquierda,OrillaDerecha,bote_der],EstadoHastaAhora),
+    select(X,OrillaDerecha,RestoOrillaDerechaAux),
+    select(Y,RestoOrillaDerechaAux,RestoOrillaDerecha),
+    \+ grupo_invalido(RestoOrillaDerecha),
+    \+ grupo_invalido([X,Y]),
+    append(OrillaDerecha,[X,Y],NewOrillaIzquierda),
+    \+ grupo_invalido(NewOrillaIzquierda),
+    generate_viajes([NewOrillaIzquierda,RestoOrillaDerecha,bote_izq],[[OrillaIzquierda,OrillaDerecha,bote_der]|EstadoHastaAhora],Camino).
+    
+generate_viajes([OrillaIzquierda,OrillaDerecha,bote_der],EstadoHastaAhora,[[X]|Camino]):-
+    \+ member([OrillaIzquierda,OrillaDerecha,bote_der],EstadoHastaAhora),
+    select(X,OrillaDerecha,RestoOrillaDerecha),
+    \+ grupo_invalido(RestoOrillaDerecha),
+    append(OrillaDerecha,[X],NewOrillaIzquierda),
+    \+ grupo_invalido(NewOrillaIzquierda),
+    generate_viajes([NewOrillaIzquierda,RestoOrillaDerecha,bote_izq],[[OrillaIzquierda,OrillaDerecha,bote_der]|EstadoHastaAhora],Camino).
+
+/*
+generate_viajes([[],_,_],_,_,).
+generate_viajes(Estado1,[SiguienteBarco|V]):-
+    viaje(Estado1, Estado2)
+    generate_viajes(Estado2).
+
+generate_viajes([OrillaIzquierda,OrillaDerecha,bote_izq],[SiguienteBarco|V]):-
+    select(X,OrillaIzquierda,RestoOrillaIzquierda),
+    \+ grupo_invalido([X,Y]),
+    generate_viajes([RestoOrillaIzquierda,NewOrillaDerecha,bote_der]).
+generate_viajes([OrillaIzquierda,Barco,OrillaDerecha,bote_der],[SiguienteBarco|V],[SiguienteOrillaIzquierda,SiguienteBarco,SiguienteOrillaDerecha]):-
+ */
+
+
+
+
+
+
+viajes(V):-
+    %Generate
+    EstadoInicial = [[h1,m1,h2,m2,h3,m3],[],bote_izq],
+    generate_viajes(EstadoInicial,[],V).
+ 
+
