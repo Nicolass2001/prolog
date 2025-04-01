@@ -23,6 +23,55 @@ colorear(Mapa,Colores):-
     %Check
     verificar_vecinos(Mapa).
 
+/* Ejercicio 2 ----------------------------------------------------------------
+El problema del «ataque de las k reinas» consiste en
+distribuir k reinas en un tablero de n por n, de forma que
+toda casilla del tablero quede atacada por una reina, y
+ninguna reina sea atacada por otra.
+Defina el siguiente predicado:
+kreinas(K,N,Reinas) 
+Reinas es una solución al problema del ataque de las K
+reinas en un tablero de tamaño N por N.
+*/
+
+lista(0,[]).
+lista(N,[N|L]):-
+    N1 is N - 1,
+    lista(N1,L).
+
+kreinas_generate(0,_,_,[]).
+kreinas_generate(K,X,Y,[R|Reinas]):-
+    K1 is K - 1,
+    select(SelectedX,X,X1),
+    select(SelectedY,Y,Y1),
+    R = [SelectedX,SelectedY],
+    kreinas_generate(K1,X1,Y1,Reinas).
+
+not_diagonal([Ax,Ay],[Bx,By]):-
+    Y is abs(Bx - Ax),
+    X is abs(By - Ay),
+    Y \= X.
+
+check_diagonal(_,[]).
+check_diagonal(R,[R1|Reinas]):-
+    not_diagonal(R,R1),
+    check_diagonal(R, Reinas).
+
+kreinas_check([_]).
+kreinas_check([R|Reinas]):-
+    check_diagonal(R, Reinas),
+    kreinas_check(Reinas).
+
+kreinas(K,N,Reinas):-
+    % Generate
+    length(X, N),
+    lista(N, X),
+    length(Y, N),
+    lista(N, Y),
+    kreinas_generate(K,X,Y,Reinas),
+    % Check
+    kreinas_check(Reinas).
+
 /* Ejercicio 3 ----------------------------------------------------------------
 Al principio hay tres peones blancos y tres negros,
 alineados y separados por una casilla vacía.
