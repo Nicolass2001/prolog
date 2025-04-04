@@ -266,14 +266,154 @@ generate_viajes([OrillaIzquierda,OrillaDerecha,bote_izq],[SiguienteBarco|V]):-
 generate_viajes([OrillaIzquierda,Barco,OrillaDerecha,bote_der],[SiguienteBarco|V],[SiguienteOrillaIzquierda,SiguienteBarco,SiguienteOrillaDerecha]):-
  */
 
-
-
-
-
-
 viajes(V):-
     %Generate
     EstadoInicial = [[h1,m1,h2,m2,h3,m3],[],bote_izq],
     generate_viajes(EstadoInicial,[],V).
  
+/* Ejercicio 5 ----------------------------------------------------------------
+Este juego consiste en completar con cuadros negros una grilla de N X M casillas
+respetando ciertas indicaciones asociadas a las filas y columnas. Cada una de estas
+indicaciones consiste en una lista de números. Cada número representa el largo de
+una secuencia de cuadros negros en la fila o columna a la que está asociada. En el
+ejemplo que se da a continuación, la lista [3,2] asociada a la fila 3 indica que en esa
+fila hay dos (y sólo 2) secuencias de cuadros negros: la primera de largo 3 y la
+segunda de largo 2.
+*/
+% Dado una lista L devuelve la lista R donde R es L con los elementos de X en adelante
+remove_before([X|L],X,L).
+remove_before([Y|L],X,L1):-
+    X \= Y,
+    remove_before(L,X,L1).
 
+% Dado N devuelve una lista L con los números del 1 a N
+lista_aux(N,L):-
+    length(LAux,N),
+    lista(N,LAux),
+    reverse(LAux,L).
+/* generar_fila(Restricciones, Segmentos, L) -> Restricciones de la forma [1,3,4] y L es un array
+de números de 1 a N segmentos es un array de duplas que indican donde empieza y termina el segmento */
+generar_fila([],[],_).
+generar_fila([Restriccion|Restricciones], [[Seg1,Seg2]|Segmentos], L):-
+    member(Seg1,L),
+    Seg2 is Seg1 + Restriccion,
+    remove_before(L, Seg2, LNew),
+    generar_fila(Restricciones, Segmentos, LNew).
+
+% Función auxiliar para llamar generar_fila 
+generar_fila_aux(Restricciones, S, N):-
+    NAux is N + 1,
+    lista_aux(NAux,L),
+    generar_fila(Restricciones, S, L).
+
+% Genera una lista L de largo N con los elementos E generar_lista(L, N, E)
+generar_lista([],0,_).
+generar_lista([E|L], N, E):-
+    NNew is N - 1,
+    generar_lista(L, NNew, E).
+
+generar_lista_aux(L, N, E):-
+    length(L, N),
+    generar_lista(L, N, E).
+
+% Generar fila matriz en función de generar_fila
+generar_fila_matriz([], Fila, LargoFila, PrimerElemento):-
+    LargoVacios is LargoFila - PrimerElemento + 1,
+    generar_lista_aux(Fila, LargoVacios, v).
+generar_fila_matriz([[Seg1,Seg2]|Segmentos], Fila, LargoFila, PrimerElemento):-
+    LargoVacios is Seg1 - PrimerElemento,
+    generar_lista_aux(Vacios, LargoVacios, v),
+    LargoMarcados is Seg2 - Seg1,
+    generar_lista_aux(Marcados, LargoMarcados, m),
+    append(Vacios, Marcados, FilaPaso),
+    generar_fila_matriz(Segmentos, FilaAnterior, LargoFila, Seg2),
+    append(FilaPaso, FilaAnterior, Fila).
+
+generar_fila_matriz_aux(Restricciones, LargoFila, FilasMatriz):-
+    generar_fila_aux(Restricciones, Segmentos, LargoFila),
+    generar_fila_matriz(Segmentos, FilasMatriz, LargoFila, 1).
+
+% Generar matriz de en función de las restricciones de filas
+generar_matriz([], [], _).
+generar_matriz([RestriccionesFila|RestTotales], [Fila|Matriz], LargoFila):-
+    generar_fila_matriz_aux(RestriccionesFila, LargoFila, Fila),
+    generar_matriz(RestTotales, Matriz, LargoFila).
+
+generar_matriz_test(M):-
+    RestriccionesFilas = [[1],[3],[1,2],[4]],
+    generar_matriz(RestriccionesFilas, M, 4),
+    write(M), nl.
+
+% Check -----------------------------------------------------------------------
+
+contar_m([], 0, []).
+contar_m([X|L], 0, L):-
+    X \= m.
+contar_m([m|L], N, R):-
+    contar_m(L, NSig, R),
+    N is NSig + 1.
+
+sacar_v([],[]).
+sacar_v([X|L],[X|L]):-
+    X \= v.
+sacar_v([v|L],L1):-
+    sacar_v(L,L1).
+
+contar_m_aux(L,N,R):-
+    sacar_v(L,L1),
+    contar_m(L1,N,L2),
+    sacar_v(L2,R).
+
+contar_m_aux_test(N,R):-
+    L = [v,m,m,m,v],
+    contar_m_aux(L,N,R).
+
+/* Función recibe [v,v,m,m,v,m] y devuelve una lista de largo 
+(cantidad de secciones y el valor es el largo de la sección) */
+obtener_restricciones([],[]).
+obtener_restricciones(Columna, [N|Restricciones]):-
+    Columna \= [],
+    contar_m_aux(Columna,N,NextColumna),
+    obtener_restricciones(NextColumna, Restricciones).
+
+obtener_restricciones_test(R):-
+    Col = [v,m,m,v,v],
+    obtener_restricciones(Col,R).
+
+% Dada una matriz devuelve la primer columna
+columna([],[],[]).
+columna([[X|V]|M],[X|C],[V|R]):-
+    columna(M,C,R).
+
+obtener_restricciones_columnas([[]|_],[]).
+obtener_restricciones_columnas(Matriz,[Rest|Restricciones]):-
+    columna(Matriz,Col,RestMat),
+    obtener_restricciones(Col,Rest),
+    obtener_restricciones_columnas(RestMat,Restricciones).
+
+obtener_restricciones_columnas_test(R):-
+    M = [[v,m,m,m],[m,m,v,m],[v,m,m,m],[v,v,m,m]],
+    obtener_restricciones_columnas(M,R).
+
+puzle([RestriccionesFilas, RestriccionesColumnas], Matriz):-
+    % Generate
+    length(RestriccionesColumnas, LargoFila),
+    generar_matriz(RestriccionesFilas, Matriz, LargoFila),
+    %Check
+    obtener_restricciones_columnas(Matriz, RestriccionesColumnasGeneradas),
+    RestriccionesColumnas = RestriccionesColumnasGeneradas.
+
+
+puzle_test(M):-
+    R = [[[3],[2,1],[3,2],[2,2],[6],[1,5],[6],[1],[2]],
+    [[1,2],[3,1],[1,5],[7,1],[5],[3],[4],[3]]],
+    puzle(R,M),
+    write(M), nl.
+
+/*
+puzle_test(M):-
+    R = [[[3],[2,1],[3],[2]],
+    [[1],[3],[1,2],[4]]],
+    puzle(R,M),
+    write(M), nl.
+*/
