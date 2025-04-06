@@ -4,7 +4,6 @@ palabra([a,s]).
 palabra([s,i]).
 palabra([l,a]).
 palabra([l,e]).
-palabra([a,s]).
 palabra([s,e]).
 palabra([a,l,a]).
 palabra([c,a,n]).
@@ -61,6 +60,7 @@ Ej: elegir_primero(a,[b,a,c,a,a],[b,c,a,a]).
 */
 elegir_primero(X, [X|R1], R1).
 elegir_primero(X, [Y|R1], [Y|R2]):-
+    X \= Y,
     elegir_primero(X,R1,R2).
 
 /*
@@ -159,3 +159,57 @@ ordenada(L1,[X|L2]):-
     mas_chico(L1,X),
     elegir_primero(X,L1,L1next),
     ordenada(L1next,L2).
+
+/*
+matrizN(+N,-M) ← M es una matriz de tamaño N X N que en sus celdas contiene variables,
+de modo que representa un tablero vacío. La matriz está representada como lista de listas.
+?- matriz(4,M).
+*/
+lista(0,[]).
+lista(N,[_|L]):-
+    N \= 0,
+    N1 is N - 1,
+    lista(N1,L).
+
+matriz_aux(0, [], _).
+matriz_aux(N, [L|M], NBase):-
+    lista(NBase, L),
+    N \= 0,
+    N1 is N - 1,
+    matriz_aux(N1, M, NBase).
+
+matriz(N, M):-
+    matriz_aux(N, M, N).
+
+/* 
+TODO + or ?
+traspuesta(+M,?MT) ← MT es la traspuesta de la matriz M.
+?- traspuesta([[A,B],[C,D],MT).
+*/
+% columna(+M,?C,?R) C es la primera columna de M en forma de lista, R es M sin la primera columna
+columna([],[],[]).
+columna([[X|V]|M],[X|C],[V|R]):- columna(M,C,R).
+
+% transpuesta(+M,?T) T es la transpuesta de la matriz T
+% [ [ 1, 2, 3 ], [ 4, 5, 6 ], [ 7, 8, 9 ] ] -> [[ 1, 4, 7 ], [ 2, 5, 8 ], [ 3, 6, 9 ]]
+transpuesta([],[]).
+transpuesta([[]|_],[]).
+transpuesta(M,[C|T]):- columna(M,C,R), transpuesta(R,T).
+
+/*
+cruzadas1(+N,?T) ← T es un tablero válido de tamaño N X N de palabras cruzadas, es
+decir, todas las filas y todas las columnas contienen letras que forman palabras de largo N
+pertenecientes al diccionario.
+?- cruzadas1(3,T).
+T = [[a,l,a],[c,a,l],[a,s,a]]
+*/
+generate([]).
+generate([F|M]):-
+    palabra(F),
+    generate(M).
+
+cruzadas1(N,T):-
+    matriz(N,M),
+    generate(M),
+    transpuesta(M,T),
+    generate(T).
