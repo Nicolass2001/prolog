@@ -213,3 +213,27 @@ cruzadas1(N,T):-
     generate(M),
     transpuesta(M,T),
     generate(T).
+
+/*
+intercaladas(+M1,+M2,?I) ← I es una lista que contiene las filas de M y MT intercaladas.
+M y MT son de igual tamaño.
+?- intercaladas([[1,2,3],[4,5,6],[7,8,9]], [[1,4,7],[2,5,8],[3,6,9]], I).
+I = [[1,2,3],[1,4,7],[4,5,6],[2,5,8],[7,8,9],[3,6,9]]
+*/
+intercaladas([],_,[]).
+intercaladas([F|M1],M2,[F|I]):-
+    intercaladas(M2,M1,I).
+
+
+/*
+cruzadas2(+N,?T) ← T es un tablero válido de tamaño N X N de palabras cruzadas, es
+decir, todas las filas y todas las columnas contienen letras que forman palabras de largo N
+pertenecientes al diccionario.
+?- cruzadas2(3,T).
+T = [[a,l,a],[c,a,l],[a,s,a]]
+*/
+cruzadas2(N,M):-
+    matriz(N,M),
+    transpuesta(M,T),
+    intercaladas(M,T,I),
+    generate(I).
