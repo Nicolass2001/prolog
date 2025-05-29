@@ -236,3 +236,40 @@ Indique las respuestas que se obtienen para L con los siguientes objetivos:
     vii. setof(X, (padre(juan,X) ; padre(pedro,X)), L).
     viii. setof(X, (padre(juan,X), padre(X,Y)), L).
 */
+
+/* Ejercicio 6 [Fundamental]
+Utilizando predicados de segundo orden, implemente los siguientes predicados:
+
+pares(+L,?P) ← P contiene los elementos pares de L
+
+mayores(+L,+X,?M) ← M contiene los elementos de L que son mayores que X.
+
+union(+C1,+C2,?C) ← C es la unión de los conjuntos C1 y C2.
+
+interseccion(+C1,+C2,?C) ← C es la intersección de los conjuntos C1 y C2.
+
+diferencia(+C1,+C2,-C) ← C es igual a C1-C2.
+
+adyacentes(+N,?A) ← A es la lista de nodos adyacentes al nodo N en un grafo 
+definido mediante el predicado arista(N1, N2).
+
+max_comun(+L1,+L2,?L) ← L es la sublista más larga común a L1 y L2
+*/
+
+/* Ejercicio 7 [Fundamental]
+Implemente los siguientes predicados de segundo orden. Asuma que los
+argumentos U, B y T contendrán predicados unarios (por ejemplo par/1), binarios
+(por ejemplo doble/2) o ternarios (por ejemplo suma/3) respectivamente.
+
+any(+L,+U) ← Algún elemento de L cumple la propiedad U.
+
+all(+L,+U) ← Todos los elementos de L cumplen la propiedad U
+
+map(+L,+B,?L2) ← L2 es el resultado de aplicar la función B a todos los elementos de L
+
+combine(+L1,+L2,+T,?L3) ← L3 es el resultado de aplicar el operador T a elementos 
+en las mismas posiciones de L1 y L2
+
+fold(+L,+T,?F) ← F es el resultado de realizar un fold sobre la lista L con el operador T. 
+Por ejemplo, si T fuera la suma la operación sería: F = L1 + L2 + … + Ln-1 + Ln
+*/
