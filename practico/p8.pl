@@ -237,6 +237,53 @@ Indique las respuestas que se obtienen para L con los siguientes objetivos:
     viii. setof(X, (padre(juan,X), padre(X,Y)), L).
 */
 
+padre(juan, ana).
+padre(juan, jose).
+padre(juan, pedro).
+padre(pedro, hector).
+padre(pedro, gustavo).
+padre(hector, maria).
+
+/* i. findall(X, padre(juan,X), L).
+L = [ana,jose,pedro]
+*/
+
+/* ii. findall(X, padre(Y,X), L).
+L = [ana,jose,pedro,hector,gustavo,maria]
+*/
+
+/* iii. findall(X, (padre(juan,X) ; padre(pedro,X)), L).
+L = [ana,jose,pedro,hector,gustavo]
+*/
+
+/* iv. findall(X, (padre(juan,X), padre(X,Y)), L).
+L = [pedro,pedro]
+*/
+
+/* v. setof(X, padre(juan,X), L).
+L = [ana,jose,pedro]
+*/
+
+/* vi. setof(X, padre(Y,X), L).
+Y = juan,
+L = [ana,jose,pedro].
+Y = pedro,
+L = [hector,gustavo].
+Y = hector,
+L = [maria].
+*/
+
+/* vii. setof(X, (padre(juan,X) ; padre(pedro,X)), L).
+L = [ana,jose,pedro,hector,gustavo]
+*/
+
+/* viii. setof(X, (padre(juan,X), padre(X,Y)), L).
+Y = hector,
+L = [pedro].
+Y = gustavo,
+L = [pedro].
+*/
+
 /* Ejercicio 6 [Fundamental]
 Utilizando predicados de segundo orden, implemente los siguientes predicados:
 
