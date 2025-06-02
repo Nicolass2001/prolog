@@ -163,7 +163,7 @@ chequear_celda(Tablero,Turno,F,C,CeldaDevuelta):-
     CeldaSegundoCaso =.. [_,_,1,_],
     %Chequear celda F + 1, C
     FMasUno is F + 1,
-    celda(Tablero,FMasUno,C,CeldaTercerCaso)
+    celda(Tablero,FMasUno,C,CeldaTercerCaso),
     CeldaTercerCaso =.. [_,1,_,_],
     %Pintar celda
     setarg(3,Celda,Turno),
