@@ -30,6 +30,48 @@ sugerencia_jugada/6 % sugerencia_jugada(+Tablero,+Turno,+Nivel,?F,?C,?D)
 % a un jugador humano.
 ]).
 
+% funciones auxiliares
+
+% Devuelve en V la celda (I,J) de la matriz M
+celda(M,I,J,V):-
+    M =.. [_|Filas],
+    nth1(I,Filas,Fila),
+    Fila =.. [_|Valores],
+    nth1(J,Valores,V).
+
+% Devuelve en T2 una copia del tablero T1 que no comparte memoria
+copia_tablero(T1,T2):-
+    T1 =.. [_|Filas],
+    copia_filas(Filas, NewFilas),
+    T2 =.. [m|NewFilas].
+
+copia_filas([],[]).
+copia_filas([Fila|F1],[NewFila|F2]):-
+    Fila =.. [_|Celdas],
+    copia_celdas(Celdas,NewCeldas),
+    NewFila =.. [f|NewCeldas],
+    copia_filas(F1,F2).
+
+copia_celdas([],[]).
+copia_celdas([c(H,V,P)|C1],[c(H,V,P)|C2]):-
+    copia_celdas(C1,C2).
+
+% Devuelve en X el valor máximo de la lista L
+max_list([X], X).
+max_list([X|Rest], Max) :-
+    max_list(Rest, MaxRest),
+    Max is max(X, MaxRest).
+
+% Devuelve en X el valor mínimo de la lista L
+min_list([X], X).
+min_list([X|Rest], Min) :-
+    min_list(Rest, MinRest),
+    Min is min(X, MinRest).
+
+% Devuelve el otro jugador
+otro_turno(1,2).
+otro_turno(2,1).
+
 % tablero(+N,?Tablero)
 % Devuelve un tablero de tamaño N vacío, o sea una matriz que representa un
 % tablero vacío de juego como la descrita en la letra del laboratorio.
@@ -97,37 +139,31 @@ fin_del_juego(T,P1,P2,G):-
 % el siguiente turno (Turno2), y una lista de celdas que se capturaron con esta
 % acción en formato [Fila,Columna]. Por ejemplo: [[1,2],[1,3]]
 
-poner_pared_en_celda(Celda,h):-
-    setarg(1,Celda,1).
+jugada_valida(Tablero,F,C,h):-
+    celda(Tablero,F,C,V),
+    V =.. [_,0,_,_].
+jugada_valida(Tablero,F,C,v):-
+    celda(Tablero,F,C,V),
+    V =.. [_,_,0,_].
 
-poner_pared_en_celda(Celda,v):-
+poner_pared_en_tablero(Tablero,F,C,v):-
+    celda(Tablero,F,C,Celda),
     setarg(2,Celda,1).
-
-poner_pared_en_tablero(Tablero,F,C,D):-
-    Tablero =.. [_|TFilas],
-    nth1(F,TFilas,Fila),
-    Fila =.. [_|FCeldas],
-    nth1(C,FCeldas,Celda),
-    poner_pared_en_celda(Celda,D).
+poner_pared_en_tablero(Tablero,F,C,h):-
+    celda(Tablero,F,C,Celda),
+    setarg(1,Celda,1).
 
 chequear_celda(Tablero,Turno,F,C,CeldaDevuelta):-
     %Chequear celda F, C
-    Tablero =.. [_|TFilas],
-    nth1(F,TFilas,Fila),
-    Fila =.. [_|FCeldas],
-    nth1(C,FCeldas,Celda),
+    celda(Tablero,F,C,Celda),
     Celda =.. [_,1,1,_],
     %Chequear celda F, C + 1
     CMasUno is C + 1,
-    nth1(F,TFilas,FilaSegundoCaso),
-    FilaSegundoCaso =.. [_|FCeldasSegundoCaso],
-    nth1(CMasUno,FCeldasSegundoCaso,CeldaSegundoCaso),
+    celda(Tablero,F,CMasUno,CeldaSegundoCaso),
     CeldaSegundoCaso =.. [_,_,1,_],
     %Chequear celda F + 1, C
     FMasUno is F + 1,
-    nth1(FMasUno,TFilas,FilaTercerCaso),
-    FilaTercerCaso =.. [_|FCeldasTercerCaso],
-    nth1(C,FCeldasTercerCaso,CeldaTercerCaso),
+    celda(Tablero,FMasUno,C,CeldaTercerCaso)
     CeldaTercerCaso =.. [_,1,_,_],
     %Pintar celda
     setarg(3,Celda,Turno),
@@ -140,7 +176,6 @@ poner_celda_en_tablero(Tablero,Turno,F,C,h,Celdas):-
     FMenosUno is F - 1,
     chequear_celda(Tablero,Turno,FMenosUno,C,Celda2),
     append(Celda1,Celda2,Celdas).
-
 poner_celda_en_tablero(Tablero,Turno,F,C,v,Celdas):-
     chequear_celda(Tablero,Turno,F,C,Celda1),
     CMenosUno is C - 1,
@@ -151,19 +186,6 @@ siguiente_turno([],1,2):- !.
 siguiente_turno([],2,1):- !.
 siguiente_turno(_,1,1).
 siguiente_turno(_,2,2).
-
-celda(M,I,J,V):-
-    M =.. [_|Filas],
-    nth1(I,Filas,Fila),
-    Fila =.. [_|Valores],
-    nth1(J,Valores,V).
-
-jugada_valida(Tablero,F,C,h):-
-    celda(Tablero,F,C,V),
-    V =.. [_,0,_,_].
-jugada_valida(Tablero,F,C,v):-
-    celda(Tablero,F,C,V),
-    V =.. [_,_,0,_].
 
 jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,Celdas):-
     jugada_valida(Tablero,F,C,D),
@@ -178,12 +200,6 @@ jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,Celdas):-
 % El predicado devuelve: el tablero modificado luego de la jugada, de quién es
 % el siguiente turno (Turno2), y una lista de celdas que se cerraron con esta
 % acción en formato [Fila,Columna], de la misma forma que en el predicado anterior.
-
-jugada_maquina(Tablero,Turno,Nivel,F,C,D,Tablero2,Turno2,Celdas):-
-    copy_term(Tablero,Tablero3),
-    minimax(Tablero3,Turno,Nivel,F,C,D,maxing,_),
-    write(Tablero),
-    jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,Celdas).
 
 calcular_value(_,P1,P2,Value):-
     P1 = P2,
@@ -213,40 +229,18 @@ next_jugador(Tablero,Turno,F,C,D,TableroFinal,TurnoFinal):-
     Turno = Turno2,
     next_jugador(Tablero2,Turno2,_,_,_,TableroFinal,TurnoFinal).
 
-% Caso base: el máximo de una lista de un solo elemento es ese elemento.
-max_list([X], X).
-
-% Caso recursivo: compara el primer elemento con el máximo del resto de la lista.
-max_list([X|Rest], Max) :-
-    max_list(Rest, MaxRest),
-    Max is max(X, MaxRest).
-
-% Caso base: el mínimo de una lista de un solo elemento es ese elemento.
-min_list([X], X).
-
-% Caso recursivo: compara el primer elemento con el mínimo del resto de la lista.
-min_list([X|Rest], Min) :-
-    min_list(Rest, MinRest),
-    Min is min(X, MinRest).
-    
-otro_turno(1,2).
-otro_turno(2,1).
-
 heuristic(_,0).
 
 minimax(Tablero,Turno,_,_,_,_,_,Value):-
     fin_del_juego(Tablero,P1,P2,_),
     calcular_value(Turno,P1,P2,Value), !.
-
 minimax(Tablero,_,0,_,_,_,_,Value):-
     heuristic(Tablero,Value), !.
-
 minimax(Tablero,Turno,Nivel,F,C,D,maxing,Value):-
     next_jugador(Tablero,Turno,F,C,D,Tablero2,_),
     NivelNuevo is Nivel - 1,
     findall(ValueMin, minimax(Tablero2,Turno,NivelNuevo,_,_,_,mining,ValueMin), L),
     max_list(L,Value).
-
 minimax(Tablero,Turno,Nivel,F,C,D,mining,Value):-
     otro_turno(Turno, OtroTurno),
     next_jugador(Tablero,OtroTurno,F,C,D,Tablero2,_),
@@ -254,23 +248,14 @@ minimax(Tablero,Turno,Nivel,F,C,D,mining,Value):-
     findall(ValueMin, minimax(Tablero2,Turno,NivelNuevo,_,_,_,maxing,ValueMin), L),
     min_list(L,Value).
 
-/*
-function minimax(node, depth, is_maximizing)
-if node is a terminal node or depth = 0
- return the heuristic value of node
-else if is_maximizing
- max_value := -∞
- foreach child of node
- max_value := max(max_value, minimax(child,depth-1,false))
- return max_value
-else
- min_value := ∞
- foreach child of node
- min_value := min(min_value, minimax(child,depth-1,true))
- return min_value
-*/
+jugada_maquina(Tablero,Turno,Nivel,F,C,D,Tablero2,Turno2,Celdas):-
+    copia_tablero(Tablero,TableroAux),
+    minimax(TableroAux,Turno,Nivel,F,C,D,maxing,_),
+    jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,Celdas), !.
 
-
- 
-
+% sugerencia_jugada(+Tablero,+Turno,+Nivel,?F,?C,?D)
+% Utiliza la estrategia de minimax para calcular una buena jugada para sugerirle
+% a un jugador humano.
 sugerencia_jugada(_,_,_,_,_,_):-fail.
+
+%jugada_maquina(m(f(c(0,0,0),c(0,1,0),c(0,0,0),c(0,0,0)),f(c(0,0,0),c(0,0,0),c(0,0,0),c(0,0,0)),f(c(0,0,0),c(0,0,0),c(0,0,0),c(0,0,0)),f(c(0,0,0),c(0,0,0),c(0,0,0),c(0,0,0))),2,2,F,C,D,Tablero2,Turno2,Celdas).
