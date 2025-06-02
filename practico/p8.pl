@@ -303,6 +303,35 @@ definido mediante el predicado arista(N1, N2).
 max_comun(+L1,+L2,?L) ← L es la sublista más larga común a L1 y L2
 */
 
+% pares(+L,?P) ← P contiene los elementos pares de L
+pares(L,P):-
+    findall(X,(member(X,L), Mod is X mod 2, Mod = 0),P).
+
+% mayores(+L,+X,?M) ← M contiene los elementos de L que son mayores que X.
+mayores(L,X,M):-
+    findall(Y,(member(Y,L), Y > X),M).
+
+% union(+C1,+C2,?C) ← C es la unión de los conjuntos C1 y C2.
+union(C1,C2,C):-
+    setof(X,(member(X,C1);member(X,C2)),C).
+
+% interseccion(+C1,+C2,?C) ← C es la intersección de los conjuntos C1 y C2.
+interseccion(C1,C2,C):-
+    setof(X,(member(X,C1),member(X,C2)),C).
+
+% diferencia(+C1,+C2,-C) ← C es igual a C1-C2.
+diferencia(C1,C2,C):-
+    findall(X,(member(X,C1),not(member(X,C2))),C).
+
+% adyacentes(+N,?A) ← A es la lista de nodos adyacentes al nodo N en un grafo 
+% definido mediante el predicado arista(N1, N2).
+adyacentes(N,A):-
+    findall(X,arista(N,X),A).
+
+% max_comun(+L1,+L2,?L) ← L es la sublista más larga común a L1 y L2
+max_comun(L1,L2,L)
+    findall(X,(member(X,L1),member(X,L2)),L).
+
 /* Ejercicio 7 [Fundamental]
 Implemente los siguientes predicados de segundo orden. Asuma que los
 argumentos U, B y T contendrán predicados unarios (por ejemplo par/1), binarios
