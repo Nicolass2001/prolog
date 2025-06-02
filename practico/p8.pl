@@ -325,11 +325,12 @@ diferencia(C1,C2,C):-
 
 % adyacentes(+N,?A) ← A es la lista de nodos adyacentes al nodo N en un grafo 
 % definido mediante el predicado arista(N1, N2).
+arista(x,y).
 adyacentes(N,A):-
     findall(X,arista(N,X),A).
 
 % max_comun(+L1,+L2,?L) ← L es la sublista más larga común a L1 y L2
-max_comun(L1,L2,L)
+max_comun(L1,L2,L):-
     findall(X,(member(X,L1),member(X,L2)),L).
 
 /* Ejercicio 7 [Fundamental]
@@ -349,3 +350,49 @@ en las mismas posiciones de L1 y L2
 fold(+L,+T,?F) ← F es el resultado de realizar un fold sobre la lista L con el operador T. 
 Por ejemplo, si T fuera la suma la operación sería: F = L1 + L2 + … + Ln-1 + Ln
 */
+% U
+par(X):-
+    Mod is X mod 2,
+    Mod = 0.
+
+% B
+doble(X,Y):-
+    Y is X*2.
+
+% T
+% suma ya implementado arriba
+
+% any(+L,+U) ← Algún elemento de L cumple la propiedad U.
+any(L,U):-
+    findall(X,(member(X,L),Goal =.. [U,X],call(Goal)),Y),
+    Y \= [].
+
+% all(+L,+U) ← Todos los elementos de L cumplen la propiedad U
+all(L,U):-
+    findall(X,(member(X,L),Goal =.. [U,X],call(Goal)),Y),
+    Y = L.
+
+% map(+L,+B,?L2) ← L2 es el resultado de aplicar la función B a todos los elementos de L
+map(L,B,L2):-
+    findall(Y,(member(X,L),Goal =.. [B,X,Y],call(Goal)),L2).
+
+% combine(+L1,+L2,+T,?L3) ← L3 es el resultado de aplicar el operador T a elementos 
+% en las mismas posiciones de L1 y L2
+combine(L1,L2,T,L3):-
+    findall(Z,(
+        member(X,L1),
+        nth1(Index,L1,X),
+        nth1(Index,L2,Y),
+        Goal =.. [T,X,Y,Z],
+        call(Goal)
+    ),L3).
+
+% fold(+L,+T,?F) ← F es el resultado de realizar un fold sobre la lista L con el operador T. 
+% Por ejemplo, si T fuera la suma la operación sería: F = L1 + L2 + … + Ln-1 + Ln
+fold([X,Y],T,F):-
+    Goal =.. [T,X,Y,F],
+    call(Goal), !.
+fold([X|L],T,F):-
+    fold(L,T,FPrev),
+    Goal =.. [T,X,FPrev,F],
+    call(Goal).
