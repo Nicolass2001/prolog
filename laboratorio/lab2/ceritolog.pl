@@ -72,6 +72,29 @@ min_list([X|Rest], Min) :-
 otro_turno(1,2).
 otro_turno(2,1).
 
+% Cuenta los puntos en el Tablero para P1 (Jugador 1) y P2 (Jugador 2)
+contar_puntos(Tablero,P1,P2):-
+    Tablero =.. [_|Filas],
+    contar_puntos_filas(Filas,P1,P2).
+
+contar_puntos_filas([],0,0):- !.
+contar_puntos_filas([Fila|Filas],P1,P2):-
+    Fila =.. [_|Celdas],
+    contar_puntos_fila(Celdas,P1Fila,P2Fila),
+    contar_puntos_filas(Filas,P1Filas,P2Filas),
+    P1 is P1Filas + P1Fila,
+    P2 is P2Filas + P2Fila.
+
+contar_puntos_fila([],0,0):- !.
+contar_puntos_fila([c(_,_,0)|Fila],P1,P2):-
+    contar_puntos_fila(Fila,P1,P2), !.
+contar_puntos_fila([c(_,_,1)|Fila],P1,P2):-
+    contar_puntos_fila(Fila,P1Fila,P2),
+    P1 is P1Fila + 1, !.
+contar_puntos_fila([c(_,_,2)|Fila],P1,P2):-
+    contar_puntos_fila(Fila,P1,P2Fila),
+    P2 is P2Fila + 1.
+
 % tablero(+N,?Tablero)
 % Devuelve un tablero de tamaño N vacío, o sea una matriz que representa un
 % tablero vacío de juego como la descrita en la letra del laboratorio.
@@ -101,35 +124,29 @@ tablero(N, T) :-
 % ganó, en el formato: “Gana el jugador 1”, “Gana el jugador 2”, o “Empate”.
 % En caso de que no sea el fin del juego, el predicado falla.
 
-recorrer_fila([_],0,0).
-recorrer_fila([c(_,_,2)|C],P1,P2new):-
-    recorrer_fila(C,P1,P2),
+fin_del_juego_fila([_],0,0).
+fin_del_juego_fila([c(_,_,2)|C],P1,P2new):-
+    fin_del_juego_fila(C,P1,P2),
     P2new is P2 + 1.
-recorrer_fila([c(_,_,1)|C],P1new,P2):-
-    recorrer_fila(C,P1,P2),
+fin_del_juego_fila([c(_,_,1)|C],P1new,P2):-
+    fin_del_juego_fila(C,P1,P2),
     P1new is P1 + 1.
 
-recorrer_fila_aux(C,P1,P2):-
-    C =.. [_|Args],
-    recorrer_fila(Args,P1,P2).
-
-recorrer_tablero([_],0,0).
-recorrer_tablero([C|T],P1,P2):-
-    recorrer_fila_aux(C,PC1,PC2),
-    recorrer_tablero(T,PT1,PT2),
+fin_del_juego_tablero([_],0,0).
+fin_del_juego_tablero([C|T],P1,P2):-
+    C =.. [_|Celdas]
+    fin_del_juego_fila(Celdas,PC1,PC2),
+    fin_del_juego_tablero(T,PT1,PT2),
     P1 is PC1 + PT1,
     P2 is PC2 + PT2.
-
-recorrer_tablero_aux(T,P1,P2):-
-    T =.. [_|Args],
-    recorrer_tablero(Args,P1,P2).
 
 mensaje_ganador(P1,P2,'Gana el jugador 1'):- P1 > P2.
 mensaje_ganador(P1,P2,'Gana el jugador 2'):- P2 > P1.
 mensaje_ganador(P1,P2,'Empate'):- P2 =:= P1.
 
 fin_del_juego(T,P1,P2,G):-
-    recorrer_tablero_aux(T,P1,P2),
+    T =.. [_|Filas],
+    fin_del_juego_tablero(Filas,P1,P2)
     mensaje_ganador(P1,P2,G).
 
 % jugada_humano(+Tablero,+Turno,+F,+C,+D,?Tablero2,?Turno2,?Celdas)
@@ -229,23 +246,28 @@ next_jugador(Tablero,Turno,F,C,D,TableroFinal,TurnoFinal):-
     Turno = Turno2,
     next_jugador(Tablero2,Turno2,_,_,_,TableroFinal,TurnoFinal).
 
-heuristic(_,0).
+heuristic(Tablero,1,Value):-
+    contar_puntos(Tablero,P1,P2),
+    Value is P1 - P2.
+heuristic(Tablero,2,Value):-
+    contar_puntos(Tablero,P1,P2),
+    Value is P2 - P1.
 
 minimax(Tablero,Turno,_,_,_,_,_,Value):-
     fin_del_juego(Tablero,P1,P2,_),
     calcular_value(Turno,P1,P2,Value), !.
-minimax(Tablero,_,0,_,_,_,_,Value):-
-    heuristic(Tablero,Value), !.
+minimax(Tablero,Turno,0,_,_,_,_,Value):-
+    heuristic(Tablero,Turno,Value), !.
 minimax(Tablero,Turno,Nivel,F,C,D,maxing,Value):-
     next_jugador(Tablero,Turno,F,C,D,Tablero2,_),
     NivelNuevo is Nivel - 1,
-    findall(ValueMin, minimax(Tablero2,Turno,NivelNuevo,_,_,_,mining,ValueMin), L),
+    findall(ValueMinmax, minimax(Tablero2,Turno,NivelNuevo,_,_,_,mining,ValueMinmax), L),
     max_list(L,Value).
 minimax(Tablero,Turno,Nivel,F,C,D,mining,Value):-
     otro_turno(Turno, OtroTurno),
     next_jugador(Tablero,OtroTurno,F,C,D,Tablero2,_),
     NivelNuevo is Nivel - 1,
-    findall(ValueMin, minimax(Tablero2,Turno,NivelNuevo,_,_,_,maxing,ValueMin), L),
+    findall(ValueMinmax, minimax(Tablero2,Turno,NivelNuevo,_,_,_,maxing,ValueMinmax), L),
     min_list(L,Value).
 
 jugada_maquina(Tablero,Turno,Nivel,F,C,D,Tablero2,Turno2,Celdas):-
