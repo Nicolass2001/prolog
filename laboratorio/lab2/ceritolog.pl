@@ -99,16 +99,16 @@ contar_puntos_fila([c(_,_,2)|Fila],P1,P2):-
 % Devuelve un tablero de tamaño N vacío, o sea una matriz que representa un
 % tablero vacío de juego como la descrita en la letra del laboratorio.
 
-fila(0, []).
-fila(N, [c(0,0,0)|R]) :-
-    N > 0,
+fila(1, [c(1,Y,Z)], c(_,Y,Z)):- !.
+fila(N, [V|R], V) :-
     N1 is N - 1, 
-    fila(N1, R).
+    fila(N1, R, V).
 
-filas(_, 0, []).
+filas(N, 1, [F]):- 
+    fila(N, FLista, c(0,1,0)),
+    F =.. [f|FLista], !.
 filas(N, C, [F|R]) :-
-    C > 0,
-    fila(N, FLista),
+    fila(N, FLista, c(0,0,0)),
     F =.. [f|FLista],
     C1 is C - 1,
     filas(N, C1, R).
@@ -134,7 +134,7 @@ fin_del_juego_fila([c(_,_,1)|C],P1new,P2):-
 
 fin_del_juego_tablero([_],0,0).
 fin_del_juego_tablero([C|T],P1,P2):-
-    C =.. [_|Celdas]
+    C =.. [_|Celdas],
     fin_del_juego_fila(Celdas,PC1,PC2),
     fin_del_juego_tablero(T,PT1,PT2),
     P1 is PC1 + PT1,
@@ -146,7 +146,7 @@ mensaje_ganador(P1,P2,'Empate'):- P2 =:= P1.
 
 fin_del_juego(T,P1,P2,G):-
     T =.. [_|Filas],
-    fin_del_juego_tablero(Filas,P1,P2)
+    fin_del_juego_tablero(Filas,P1,P2),
     mensaje_ganador(P1,P2,G).
 
 % jugada_humano(+Tablero,+Turno,+F,+C,+D,?Tablero2,?Turno2,?Celdas)
