@@ -68,6 +68,12 @@ min_list([X|Rest], Min) :-
     min_list(Rest, MinRest),
     Min is min(X, MinRest).
 
+% Utiliza max_list o min_list dependiendo de si esta maximizando o minimizando
+minimax_list(L,V,maxing):-
+    max_list(L,V).
+minimax_list(L,V,mining):-
+    min_list(L,V).
+
 % Devuelve el otro jugador
 otro_turno(1,2).
 otro_turno(2,1).
@@ -238,14 +244,6 @@ calcular_value(Turno,P1,P2,Value):-
     Turno = 1,
     Value = -100, !.
 
-next_jugador(Tablero,Turno,F,C,D,Tablero2,Turno2):-
-    jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,_),
-    Turno \= Turno2.
-next_jugador(Tablero,Turno,F,C,D,TableroFinal,TurnoFinal):-
-    jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,_),
-    Turno = Turno2,
-    next_jugador(Tablero2,Turno2,_,_,_,TableroFinal,TurnoFinal).
-
 heuristic(Tablero,1,Value):-
     contar_puntos(Tablero,P1,P2),
     Value is P1 - P2.
@@ -253,107 +251,56 @@ heuristic(Tablero,2,Value):-
     contar_puntos(Tablero,P1,P2),
     Value is P2 - P1.
 
-minimax(Tablero,Turno,_,_,_,_,_,_,Value):-
+% Caso tablero final
+minimax(Value,TurnoInicial,_,_,Tablero,_):-
     fin_del_juego(Tablero,P1,P2,_),
-    calcular_value(Turno,P1,P2,Value), !.
-minimax(Tablero,Turno,0,_,_,_,_,_,Value):-
-    heuristic(Tablero,Turno,Value), !.
-/*
-minimax(Tablero,Turno,Nivel,F,C,D,maxing,Value):-
-    next_jugador(Tablero,Turno,F,C,D,Tablero2,_),
+    calcular_value(TurnoInicial,P1,P2,Value), !.
+% Caso nivel 0
+minimax(Value,TurnoInicial,0,_,Tablero,_):-
+    heuristic(Tablero,TurnoInicial,Value), !.
+% Caso recursivo
+minimax(Value,TurnoInicial,Nivel,Maxing,Tablero,Turno):-
     NivelNuevo is Nivel - 1,
-    write(NivelNuevo),
-    findall(ValueMinmax, minimax(Tablero2,Turno,NivelNuevo,_,_,_,mining,ValueMinmax), L),
-    max_list(L,Value).
-minimax(Tablero,Turno,Nivel,F,C,D,mining,Value):-
-    otro_turno(Turno, OtroTurno),
-    next_jugador(Tablero,OtroTurno,F,C,D,Tablero2,_),
-    NivelNuevo is Nivel - 1,
-    findall(ValueMinmax, minimax(Tablero2,Turno,NivelNuevo,_,_,_,maxing,ValueMinmax), L),
-    min_list(L,Value).
-*/
-minimax(Tablero,TurnoInicial,Nivel,F,C,D,Turno,Maxing,Value):-
-    jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,_),
-    TurnoInicial = Turno2,
-    NivelNuevo is Nivel - 1,
-    findall(ValueMinmax, minimax(Tablero2,TurnoInicial,NivelNuevo,_,_,_,Turno2,maxing,ValueMinmax), L),
-    minimax_list(L,Value,Maxing).
-minimax(Tablero,TurnoInicial,Nivel,F,C,D,Turno,Maxing,Value):-
-    jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,_),
-    TurnoInicial \= Turno2,
-    NivelNuevo is Nivel - 1,
-    findall(ValueMinmax, minimax(Tablero2,TurnoInicial,NivelNuevo,_,_,_,Turno2,mining,ValueMinmax), L),
+    findall(ValueAux,(
+        jugada_humano(Tablero,Turno,_,_,_,Tablero3,Turno3,_),
+        ( TurnoInicial = Turno3 ->
+            minimax(ValueAux,TurnoInicial,NivelNuevo,maxing,Tablero3,Turno3),
+        ;
+            minimax(ValueAux,TurnoInicial,NivelNuevo,mining,Tablero3,Turno3),
+        )
+    ),L),
     minimax_list(L,Value,Maxing).
 
-minimax_list(L,V,maxing):-
-    max_list(L,V).
-minimax_list(L,V,mining):-
-    min_list(L,V).
+max_list_aux([X], X) :- !.
+max_list_aux([X|Rest], Max) :-
+    max_list_aux(Rest, TempMax),
+    X = [VX|_],
+    TempMax = [VT|_],
+    ( VX >= VT -> Max = X ; Max = TempMax ).
 
-max_list_aux([X], X):- !.
-max_list_aux([X|Rest], X) :-
-    max_list_aux(Rest, XRest),
-    X = [V|_],
-    XRest = [VRest|_],
-    V >= VRest, !.
-max_list_aux([X|Rest], XRest) :-
-    max_list_aux(Rest, XRest),
-    X = [V|_],
-    XRest = [VRest|_],
-    V < VRest.
-
-minimax_aux(Tablero,Turno,Nivel,F,C,D):-
-    findall([Value,FAux,CAux,DAux],
-        minimax(Tablero,Turno,Nivel,FAux,CAux,DAux,Turno,maxing,Value), 
-    L),
-    max_list_aux(L,V),
+minimax_inicial(Tablero,Turno,Nivel,F,C,D):-
+    NivelNuevo is Nivel - 1,
+    findall([Value,FAux,CAux,DAux],(
+        jugada_humano(Tablero,Turno,FAux,CAux,DAux,Tablero2,Turno2,_),
+        ( Nivel = 0 -> 
+            Value = 0
+        ;( Turno = Turno2 ->
+            minimax(Value,Turno,NivelNuevo,maxing,Tablero2,Turno2)
+        ;
+            minimax(Value,Turno,NivelNuevo,mining,Tablero2,Turno2)
+        ))
+    ),L),
+    random_permutation(L,L2),
+    max_list_aux(L2,V),
     V = [_,F,C,D], !.
-
 
 jugada_maquina(Tablero,Turno,Nivel,F,C,D,Tablero2,Turno2,Celdas):-
     copia_tablero(Tablero,TableroAux),
-    minimax_aux(TableroAux,Turno,Nivel,F,C,D),
+    minimax_inicial(TableroAux,Turno,Nivel,F,C,D),
     jugada_humano(Tablero,Turno,F,C,D,Tablero2,Turno2,Celdas), !.
 
 % sugerencia_jugada(+Tablero,+Turno,+Nivel,?F,?C,?D)
 % Utiliza la estrategia de minimax para calcular una buena jugada para sugerirle
 % a un jugador humano.
-sugerencia_jugada(_,_,_,_,_,_):-fail.
-
-/*
-jugada_maquina(m(
-f(c(1,0,0),c(1,1,0),c(1,1,0),c(1,0,0)),
-f(c(0,0,0),c(0,0,0),c(0,0,0),c(1,0,0)),
-f(c(0,0,0),c(0,0,0),c(0,0,0),c(1,0,0)),
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0))
-),2,2,F,C,D,Tablero2,Turno2,Celdas).
-
-findall([FAux,CAux,DAux,Value],
-minimax(m(
-f(c(1,0,0),c(1,1,0),c(1,1,0),c(1,0,0)),
-f(c(0,0,0),c(0,0,0),c(0,0,0),c(1,0,0)),
-f(c(0,0,0),c(0,0,0),c(0,0,0),c(1,0,0)),
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0))
-),2,2,FAux,CAux,DAux,maxing,Value), L).
-
-next_jugador(m(
-f(c(1,1,0),c(1,1,0),c(1,0,0),c(1,1,0)),
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0)),
-f(c(0,1,0),c(0,0,0),c(0,1,0),c(1,1,0)),
-f(c(1,1,0),c(1,1,0),c(0,1,0),c(1,1,0))
-),2,F,C,D,Tablero2,_)
-
-minimax_aux(m(
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0)),
-f(c(0,1,0),c(0,0,0),c(0,1,0),c(1,1,0)),
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0)),
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0))
-),2,2,F,C,D).
-*/
-test(F,C,D):-
-    minimax_aux(m(
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0)),
-f(c(0,1,0),c(0,0,0),c(0,1,0),c(1,1,0)),
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0)),
-f(c(0,1,0),c(0,1,0),c(0,1,0),c(1,1,0))
-),2,2,F,C,D).
+sugerencia_jugada(Tablero,Turno,Nivel,F,C,D):-
+    minimax_inicial(Tablero,Turno,Nivel,F,C,D).
