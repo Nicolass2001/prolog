@@ -1,0 +1,133 @@
+/* Ejercicio 1 [Fundamental]
+Escriba los siguientes predicados sobre listas de diferencias.
+Para las listas de diferencias utilice la representación mediante términos
+estructurados de la forma: X-Xr
+*/
+/*
+l_ld(L, LD) LD es una lista de diferencias equivalente a la lista L.
+*/
+l_ld([],LDr-LDr).
+l_ld([X|L],[X|LD]-LDr):-
+    l_ld(L,LD-LDr).
+
+/*
+ld_l(LD, L) L es la lista equivalente a la lista de diferencias LD.
+*/
+ld_l(LD-[],LD).
+
+/*
+append_ld(A,B,C) C es la lista de diferencia equivalente a concatenar
+las listas de diferencias A y B.
+*/
+append_ld(A-B,B-Br,A-Br).
+
+/*
+inserta_ld(L1,X,L2) L2 es la lista de diferencias resultante de insertar el
+elemento X al comienzo de la lista de diferencias L1.
+*/
+inserta_ld(L1-L1r,X,[X|L1]-L1r).
+
+/*
+insertz_ld(L1,X,L2) L2 es la lista de diferencias resultante de insertar el
+elemento X al final de la lista de diferencias L1.
+*/
+insertz_ld(L1-[X|L2r],X,L1-L2r).
+
+/*
+rotacion_ld(L1, L2) L2 es la lista de diferencias que resulta de rotar un
+lugar a la izquierda, en forma circular, los elementos
+de la lista de diferencias L1.
+Ejemplo: rotacion_ld([a,b,c|X]-X, [b,c,a|Y]-Y)
+*/
+rotacion_ld([X|L1]-[X|L2r],L1-L2r).
+
+/*
+reverse_ld(L,R) R es la lista de diferencias que representa el inverso
+de la lista común L.
+*/
+reverse_ld([X|L]-L,[X|R]-R):-
+    var(L), !.
+reverse_ld([X|L]-Lr,R-Rr):-
+    reverse_ld(L-Lr,R-[X|Rr]).
+
+/*
+quicksort_ld(L,S) S es la lista de diferencias ordenada que representa
+la lista común L ordenada utilizando el algoritmo
+quicksort.
+*/
+quicksort_ld([],S-S).
+quicksort_ld([X|L],S-Sr):-
+    quicksort_ld_ordenar(X,L,S1Aux,S2Aux),
+    quicksort_ld(S1Aux,S1-S1r),
+    quicksort_ld(S2Aux,S2-S2r),
+    insertz_ld(S1-S1r,X,S1X-S1Xr),
+    append_ld(S1X-S1Xr,S2-S2r,S-Sr).
+
+quicksort_ld_ordenar(_,[],[],[]):- !.
+quicksort_ld_ordenar(X,[Y|L],[Y|S1],S2):-
+    X < Y, !,
+    quicksort_ld_ordenar(X,L,S1,S2).
+quicksort_ld_ordenar(X,[Y|L],S1,[Y|S2]):-
+    quicksort_ld_ordenar(X,L,S1,S2).
+
+/* Ejercicio 3 [Fundamental]
+Escriba los siguientes predicados para árboles de enteros, representados mediante
+estructuras incompletas:
+*/
+/*
+pre_orden(A, L) L es una lista con los elementos del árbol binario A,
+obtenida al recorrerlo pre-orden.
+*/
+
+/*
+in_orden(A, L) L es una lista con los elementos del árbol binario A,
+obtenida al recorrerlo in-orden.
+*/
+
+/*
+ins_abb(A, E) El árbol binario de búsqueda A contiene al
+elemento E en la posición que le corresponde
+según su valor.
+*/
+
+/* Ejercicio 4 [Fundamental]
+Implemente los siguientes predicados sobre listas de diferencias en Prolog:
+
+a) [prueba 2020]
+largo_ld(+L,?N) ← N es el largo de los elementos de la lista de diferencias L, sin
+contar el resto variable. Por ejemplo:
+largo_ld([a,b,c,d|LR]-LR,4).
+largo_ld([c,d|LR]-LR,2).
+
+b) [prueba 2021]
+not_member_ld(+X,?L) ← X es un elemento que no está presente en la lista de
+diferencias L utilizada con la notación L-LR. Por ejemplo:
+not_member_ld(6,[1,2,3,4|LR]-LR). ← Devuelve “true”.
+not_member_ld(4,[1,2,3,4|LR]-LR). ← Devuelve “false”.
+*/
+
+/* Ejercicio 5 [Fundamental]
+Utilizando DCG, defina programas Prolog para reconocer los siguientes lenguajes:
+ L = {a* b* c* }
+ L = {an bn / n ≥ 0}
+ L = {wwR / w ∈ {a,b}* }
+ L = {an bn cn / n ≥ 0}
+ L = {an bm cn+m / n,m ≥ 0}
+ L = {ap bm cp*m / p,m ≥ 0}
+*/
+
+/* Ejercicio 6 [Fundamental]
+a) Escriba una gramática en Prolog, usando la notación DCG, que permita
+reconocer frases como:
+
+Los osos polares comen peces.
+Los osos polares viven en la Antártida.
+El investigador da alimento a los osos polares.
+Los investigadores estudian el comportamiento de las aves.
+
+b) Explique cómo haría para no permitir frases como:
+Las investigador estudian el comportamiento de los aves.
+
+c) Explique cómo haría para no permitir frases como:
+Los osos polares comen la Antártida.
+*/
