@@ -78,17 +78,36 @@ estructuras incompletas:
 pre_orden(A, L) L es una lista con los elementos del árbol binario A,
 obtenida al recorrerlo pre-orden.
 */
+pre_orden(A,L-L):-
+    var(A), !.
+pre_orden(a(E,D,I),[E|IL]-DLr):-
+    pre_orden(I,IL-ILr),
+    pre_orden(D,ILr-DLr).
 
 /*
 in_orden(A, L) L es una lista con los elementos del árbol binario A,
 obtenida al recorrerlo in-orden.
 */
+in_orden(A,L-L):-
+    var(A), !.
+in_orden(a(E,D,I),IL-DLr):-
+    in_orden(I,IL-[E|ILr]),
+    in_orden(D,ILr-DLr).
 
 /*
 ins_abb(A, E) El árbol binario de búsqueda A contiene al
 elemento E en la posición que le corresponde
 según su valor.
 */
+ins_abb(A,E):-
+    var(A),
+    A = a(E,_,_), 
+    !.
+ins_abb(a(N,D,_),E):-
+    N > E,
+    ins_abb(D,E), !.
+ins_abb(a(_,_,I),E):-
+    ins_abb(I,E).
 
 /* Ejercicio 4 [Fundamental]
 Implemente los siguientes predicados sobre listas de diferencias en Prolog:
