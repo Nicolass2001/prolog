@@ -111,19 +111,32 @@ ins_abb(a(_,_,I),E):-
 
 /* Ejercicio 4 [Fundamental]
 Implemente los siguientes predicados sobre listas de diferencias en Prolog:
-
+*/
+/*
 a) [prueba 2020]
 largo_ld(+L,?N) ← N es el largo de los elementos de la lista de diferencias L, sin
 contar el resto variable. Por ejemplo:
 largo_ld([a,b,c,d|LR]-LR,4).
 largo_ld([c,d|LR]-LR,2).
+*/
+largo_ld(L-L,0):-
+    var(L), !.
+largo_ld([_|L]-Lr,Nnew):-
+    largo_ld(L-Lr,N),
+    Nnew is N + 1.
 
+/*
 b) [prueba 2021]
 not_member_ld(+X,?L) ← X es un elemento que no está presente en la lista de
 diferencias L utilizada con la notación L-LR. Por ejemplo:
 not_member_ld(6,[1,2,3,4|LR]-LR). ← Devuelve “true”.
 not_member_ld(4,[1,2,3,4|LR]-LR). ← Devuelve “false”.
 */
+not_member_ld(_,L-L):-
+    var(L), !.
+not_member_ld(X,[Y|L]-Lr):-
+    X \= Y,
+    not_member_ld(X,L-Lr).
 
 /* Ejercicio 5 [Fundamental]
 Utilizando DCG, defina programas Prolog para reconocer los siguientes lenguajes:
