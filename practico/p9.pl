@@ -193,3 +193,22 @@ Las investigador estudian el comportamiento de los aves.
 c) Explique cómo haría para no permitir frases como:
 Los osos polares comen la Antártida.
 */
+
+/* Ejercicio 7 [Fundamental]
+
+a) [prueba 2010] Defina una gramática DCG para el lenguaje sobre el alfabeto {a,b}
+cuyas tiras son de la forma ww , w ∈ {a,b}*
+*/
+% Definición principal: una cadena de la forma ww
+la --> w(W), w(W).
+w([]) --> [].
+w([a|T]) --> [a], w(T).
+w([b|T]) --> [b], w(T).
+
+/*
+b) [prueba 2012] Construya una gramática DCG que reconozca el lenguaje L={y,w ∈
+{a,b}/ x=ywwRy}.
+*/
+lb --> la.
+lb --> [a], lb, [a].
+lb --> [b], lb, [b].
