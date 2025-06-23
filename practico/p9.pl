@@ -140,13 +140,43 @@ not_member_ld(X,[Y|L]-Lr):-
 
 /* Ejercicio 5 [Fundamental]
 Utilizando DCG, defina programas Prolog para reconocer los siguientes lenguajes:
- L = {a* b* c* }
- L = {an bn / n ≥ 0}
- L = {wwR / w ∈ {a,b}* }
- L = {an bn cn / n ≥ 0}
- L = {an bm cn+m / n,m ≥ 0}
- L = {ap bm cp*m / p,m ≥ 0}
 */
+% L = {a* b* c* }
+l1 --> a1, b1, c1.
+a1 --> [].
+a1 --> [a], a1.
+b1 --> [].
+b1 --> [b], b1.
+c1 --> [].
+c1 --> [c], c1.
+
+% L = {a^n b^n / n ≥ 0}
+l2 --> a2(N), b2(N).
+a2(0) --> [].
+a2(N) --> [a], a2(NPrev), {N is NPrev + 1}.
+b2(0) --> [].
+b2(N) --> [b], b2(NPrev), {N is NPrev + 1}.
+c2(0) --> [].
+c2(N) --> [c], c2(NPrev), {N is NPrev + 1}.
+
+% L = {wwR / w ∈ {a,b}* }
+l3 --> [].
+l3 --> [a], l3, [a].
+l3 --> [b], l3, [b].
+
+% L = {a^n b^n c^n / n ≥ 0}
+l4 --> a2(N), b2(N), c2(N).
+
+% L = {a^n b^m c^n+m / n,m ≥ 0}
+% l5 --> a2(N), b2(M), {NM is N + M}, c2(NM).
+l5 --> [].
+l5 --> [a], l5, [c].
+l5 --> [a], bc, [c].
+bc --> [].
+bc --> [b], bc, [c].
+
+% L = {a^p b^m c^p*m / p,m ≥ 0}
+l6 --> a2(N), b2(M), {NM is N * M}, c2(NM).
 
 /* Ejercicio 6 [Fundamental]
 a) Escriba una gramática en Prolog, usando la notación DCG, que permita
